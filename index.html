@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五子棋游戏</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        #game-board {
+            position: relative;
+            width: 450px;
+            height: 450px;
+            background-color: #e6b36b;
+            border: 2px solid #8b4513;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .grid-line {
+            position: absolute;
+            background-color: #8b4513;
+        }
+
+        .horizontal {
+            width: 100%;
+            height: 1px;
+        }
+
+        .vertical {
+            height: 100%;
+            width: 1px;
+        }
+
+        .star-point {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #8b4513;
+            border-radius: 50%;
+        }
+
+        .piece {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+
+        .black {
+            background-color: #000;
+        }
+
+        .white {
+            background-color: #fff;
+        }
+
+        #ai-button {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #ai-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-board"></div>
+    <button id="ai-button">AI提示</button>
+    <script>
+        const W = 25;
+        const D = 15;
+        const SPACE = 60;
+        let map = Array.from({ length: D }, () => Array(D).fill(0));
+        let pos = { row: 0, col: 0, player: 1 };
+        let isShow = false;
+        const gameBoard = document.getElementById('game-board');
+
+        function init() {
+            // 绘制网格
+            for (let i = 0; i < D; i++) {
+                const horizontalLine = document.createElement('div');
+                horizontalLine.classList.add('grid-line', 'horizontal');
+                horizontalLine.style.top = `${i * W + SPACE}px`;
+                gameBoard.appendChild(horizontalLine);
+
+                const verticalLine = document.createElement('div');
+                verticalLine.classList.add('grid-line', 'vertical');
+                verticalLine.style.left = `${i * W + SPACE}px`;
+                gameBoard.appendChild(verticalLine);
+            }
+
+            // 绘制定位点
+            const points = [[7, 7], [11, 3], [3, 3], [3, 11], [11, 11]];
+            for (let i = 0; i < 5; i++) {
+                const starPoint = document.createElement('div');
+                starPoint.classList.add('star-point');
+                starPoint.style.left = `${SPACE + points[i][0] * W - 5}px`;
+                starPoint.style.top = `${SPACE + points[i][1] * W - 5}px`;
+                gameBoard.appendChild(starPoint);
+            }
+        }
+
+        function drawBoard() {
+            // 清除之前的棋子
+            const pieces = document.querySelectorAll('.piece');
+            pieces.forEach(piece => piece.remove());
+
+            // 绘制棋子
+            for (let i = 0; i < D; i++) {
+                for (let j = 0; j < D; j++) {
+                    if (map[i][j]) {
+                        const piece = document.createElement('div');
+                        piece.classList.add('piece', map[i][j] === 1 ? 'black' : 'white');
+                        piece.style.left = `${SPACE + j * W - 10}px`;
+                        piece.style.top = `${SPACE + i * W - 10}px`;
+                        gameBoard.appendChild(piece);
+                    }
+                }
+            }
+
+            // 绘制选中框
+            if (isShow) {
+                const selectedBox = document.createElement('div');
+                selectedBox.style.position = 'absolute';
+                selectedBox.style.left = `${SPACE + pos.col * W - 13}px`;
+                selectedBox.style.top = `${SPACE + pos.row * W - 13}px`;
+                selectedBox.style.width = '26px';
+                selectedBox.style.height = '26px';
+                selectedBox.style.border = '2px solid blue';
+                gameBoard.appendChild(selectedBox);
+            }
+        }
+
+        function updateMouse(event) {
+            isShow = false;
+            const rect = gameBoard.getBoundingClientRect();
+            for (let i = 0; i < D; i++) {
+                for (let j = 0; j < D; j++) {
+                    const x = SPACE + j * W;
+                    const y = SPACE + i * W;
+                    const offsetX = event.clientX - rect.left;
+                    const offsetY = event.clientY - rect.top;
+                    if (Math.abs(offsetX - x) < 13 && Math.abs(offsetY - y) < 13) {
+                        pos.row = i;
+                        pos.col = j;
+                        isShow = true;
+                        return;
+                    }
+                }
+            }
+        }
+
+        function check(r, c) {
+            if (map[r][c] === 0) return false;
+            const dir = [[0, 1], [1, 0], [1, 1], [1, -1]];
+            for (let d = 0; d < 4; d++) {
+                let count = 1;
+                for (let i = -1; i <= 1; i += 2) {
+                    for (let j = 1; j < 5; j++) {
+                        const nr = r + i * dir[d][0] * j;
+                        const nc = c + i * dir[d][1] * j;
+                        if (nr < 0 || nr >= D || nc < 0 || nc >= D || map[nr][nc] !== map[r][c]) break;
+                        count++;
+                    }
+                }
+                if (count >= 5) return true;
+            }
+            return false;
+        }
+
+        init();
+        drawBoard();
+
+        gameBoard.addEventListener('mousemove', event => {
+            updateMouse(event);
+            drawBoard();
+        });
+
+        gameBoard.addEventListener('click', event => {
+            if (isShow && map[pos.row][pos.col] === 0) {
+                map[pos.row][pos.col] = pos.player;
+                if (check(pos.row, pos.col)) {
+                    alert(pos.player === 1 ? "黑棋胜利！" : "白棋胜利！");
+                } else {
+                    pos.player = pos.player === 1 ? 2 : 1;
+                }
+                drawBoard();
+            }
+        });
+
+        const aiButton = document.getElementById('ai-button');
+        aiButton.addEventListener('click', () => {
+            console.log('AI提示');
+        });
+    </script>
+</body>
+
+</html>    
