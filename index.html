@@ -239,51 +239,53 @@
         // 绘制游戏
         function drawGame() {
             let ctx = document.getElementById('gameCanvas').getContext('2d');
-            if (images[0].complete) {
-                ctx.drawImage(images[0], 0, 0, WIDTH, HEIGHT);
-            }
-
-            // 绘制玩家
-            if (images[2].complete) {
-                ctx.drawImage(images[2], myPlane.planePos.x - SIZE / 3, myPlane.planePos.y - SIZE / 3, SIZE, SIZE);
-            }
-
-            // 绘制敌机
-            for (let i = 0; i < enemyNum; i++) {
-                if (enemyPlane[i].type === 0 && images[1].complete) {
-                    ctx.drawImage(images[1], enemyPlane[i].planePos.x - SIZE / 3, enemyPlane[i].planePos.y - SIZE / 3, SIZE, SIZE);
-                } else if (enemyPlane[i].type === 1 && images[6].complete) {
-                    ctx.drawImage(images[6], enemyPlane[i].planePos.x - SIZE / 3, enemyPlane[i].planePos.y - SIZE / 3, SIZE, SIZE);
-                } else if (enemyPlane[i].type === 2 && images[4].complete) {
-                    ctx.drawImage(images[4], enemyPlane[i].planePos.x - SIZE / 3, enemyPlane[i].planePos.y - SIZE / 3, SIZE, SIZE);
+            // 确保所有图片加载完成后再绘制
+            let allImagesLoaded = images.every(img => img.complete);
+            if (allImagesLoaded) {
+                if (images[0].complete) {
+                    ctx.drawImage(images[0], 0, 0, WIDTH, HEIGHT);
                 }
-            }
 
-            // 绘制子弹
-            for (let i = 0; i < myPlane.bulletCount; i++) {
-                if (images[3].complete) {
-                    ctx.drawImage(images[3], myPlane.bulletPos[i].x - 5, myPlane.bulletPos[i].y - 5, 10, 10);
+                // 绘制玩家
+                if (images[2].complete) {
+                    ctx.drawImage(images[2], myPlane.planePos.x - SIZE / 3, myPlane.planePos.y - SIZE / 3, SIZE, SIZE);
                 }
-            }
 
-            // 绘制道具
-            if (itemActive && images[5].complete) {
-                ctx.drawImage(images[5], itemPos.x, itemPos.y, SIZE, SIZE);
-            }
+                // 绘制敌机
+                for (let i = 0; i < enemyNum; i++) {
+                    if (enemyPlane[i].type === 0 && images[1].complete) {
+                        ctx.drawImage(images[1], enemyPlane[i].planePos.x - SIZE / 3, enemyPlane[i].planePos.y - SIZE / 3, SIZE, SIZE);
+                    } else if (enemyPlane[i].type === 1 && images[6].complete) {
+                        ctx.drawImage(images[6], enemyPlane[i].planePos.x - SIZE / 3, enemyPlane[i].planePos.y - SIZE / 3, SIZE, SIZE);
+                    } else if (enemyPlane[i].type === 2 && images[4].complete) {
+                        ctx.drawImage(images[4], enemyPlane[i].planePos.x - SIZE / 3, enemyPlane[i].planePos.y - SIZE / 3, SIZE, SIZE);
+                    }
+                }
 
-            // 绘制分数
-            ctx.font = "35px Arial";
-            ctx.fillStyle = "red";
-            ctx.textAlign = "center";
-            ctx.fillText("分数: " + score, WIDTH / 2, SIZE);
+                // 绘制子弹
+                for (let i = 0; i < myPlane.bulletCount; i++) {
+                    if (images[3].complete) {
+                        ctx.drawImage(images[3], myPlane.bulletPos[i].x - 5, myPlane.bulletPos[i].y - 5, 10, 10);
+                    }
+                }
 
+                // 绘制道具
+                if (itemActive && images[5].complete) {
+                    ctx.drawImage(images[5], itemPos.x, itemPos.y, SIZE, SIZE);
+                }
 
+                // 绘制分数
+                ctx.font = "35px Arial";
+                ctx.fillStyle = "red";
+                ctx.textAlign = "center";
+                ctx.fillText("分数: " + score, WIDTH / 2, SIZE);
 
-            if (!gameStarted) {
-                ctx.fillStyle = "blue";
-                ctx.font = "50px Arial";
-                ctx.fillText("开始游戏", WIDTH / 2, 250);
-                ctx.fillText("退出游戏", WIDTH / 2, 400);
+                if (!gameStarted) {
+                    ctx.fillStyle = "blue";
+                    ctx.font = "50px Arial";
+                    ctx.fillText("开始游戏", WIDTH / 2, 250);
+                    ctx.fillText("退出游戏", WIDTH / 2, 400);
+                }
             }
         }
 
@@ -298,7 +300,7 @@
             keys[event.keyCode] = false;
         });
 
-        // 初始化IMG
+        // 初始化资源
         function initResources() {
             let imgNames = ["背景板", "敌机", "我方飞机", "子弹", "盾牌", "飞机道具", "蜜蜂飞机"];
             let loadedImages = 0;
@@ -367,4 +369,4 @@
     </script>
 </body>
 
-</html>
+</html>    
