@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <title>五子棋游戏</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f4f9;
+            font-family: 'Inter', sans-serif;
+        }
+
+        #game-board {
+            position: relative;
+            background-image: url('IMG/背景.jpg'); /* 设置背景图片 */
+            background-size: cover; /* 使背景图片覆盖整个元素 */
+            border: 2px solid #8b7355;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        #game-board canvas {
+            display: block;
+        }
+
+        #info-panel {
+            margin-left: 20px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #ai-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #ai-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-board">
+        <canvas id="board" width="375" height="375"></canvas>
+    </div>
+    <div id="info-panel">
+        <p id="turn-info">黑棋行棋</p>
+        <button id="ai-button">AI提示</button>
+    </div>
+    <script>
+        const W = 25;
+        const D = 15;
+        const SPACE = 60;
+        const NONE = 0;
+        const BLACK = 1;
+        const WHITE = 2;
+        let map = Array.from({ length: D }, () => Array(D).fill(NONE));
+        let pos = { row: 0, col: 0, player: BLACK };
+        let isShow = false;
+        let isAIButtonHover = false;
+        const canvas = document.getElementById('board');
+        const ctx = canvas.getContext('2d');
+        const turnInfo = document.getElementById('turn-info');
+        const aiButton = document.getElementById('ai-button');
+
+        function init() {
+            drawBoard();
+        }
+
+        function drawBoard() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制网格
+            ctx.strokeStyle = 'black';
+            for (let i = 0; i < D; i++) {
+                ctx.beginPath();
+                ctx.moveTo(SPACE, i * W + SPACE);
+                ctx.lineTo((D - 1) * W + SPACE, i * W + SPACE);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(i * W + SPACE, SPACE);
+                ctx.lineTo(i * W + SPACE, (D - 1) * W + SPACE);
+                ctx.stroke();
+            }
+
+            // 绘制定位点
+            ctx.fillStyle = 'black';
+            const points = [[7, 7], [11, 3], [3, 3], [3, 11], [11, 11]];
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.arc(SPACE + points[i][0] * W, SPACE + points[i][1] * W, 5, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            // 绘制棋子
+            for (let i = 0; i < D; i++) {
+                for (let j = 0; j < D; j++) {
+                    if (map[i][j]) {
+                        ctx.fillStyle = map[i][j] === BLACK ? 'black' : 'white';
+                        ctx.beginPath();
+                        ctx.arc(SPACE + j * W, SPACE + i * W, 10, 0, 2 * Math.PI);
+                        ctx.fill();
+                    }
+                }
+            }
+
+            // 绘制选中框
+            if (isShow) {
+                ctx.strokeStyle = 'blue';
+                ctx.strokeRect(SPACE + pos.col * W - 13, SPACE + pos.row * W - 13, 26, 26);
+            }
+
+            // 更新行棋提示
+            turnInfo.textContent = pos.player === BLACK ? '黑棋行棋' : '白棋行棋';
+
+            // 更新AI按钮样式
+            aiButton.style.backgroundColor = isAIButtonHover ? '#45a049' : '#4caf50';
+        }
+
+        function updateMouse(x, y) {
+            isShow = false;
+            isAIButtonHover = false;
+
+            // 检查棋盘位置
+            for (let i = 0; i < D; i++) {
+                for (let j = 0; j < D; j++) {
+                    const px = SPACE + j * W;
+                    const py = SPACE + i * W;
+                    if (Math.abs(x - px) < 13 && Math.abs(y - py) < 13) {
+                        pos.row = i;
+                        pos.col = j;
+                        isShow = true;
+                        return;
+                    }
+                }
+            }
+
+            // 检查是否悬停在AI按钮上
+            const rect = aiButton.getBoundingClientRect();
+            if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                isAIButtonHover = true;
+            }
+        }
+
+        function check(r, c) {
+            if (map[r][c] === NONE) return false;
+            const dir = [[0, 1], [1, 0], [1, 1], [1, -1]];
+            for (let d = 0; d < 4; d++) {
+                let count = 1;
+                for (let i = -1; i <= 1; i += 2) {
+                    for (let j = 1; j < 5; j++) {
+                        const nr = r + i * dir[d][0] * j;
+                        const nc = c + i * dir[d][1] * j;
+                        if (nr < 0 || nr >= D || nc < 0 || nc >= D || map[nr][nc] !== map[r][c]) break;
+                        count++;
+                    }
+                }
+                if (count >= 5) return true;
+            }
+            return false;
+        }
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            updateMouse(x, y);
+            drawBoard();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            updateMouse(x, y);
+            drawBoard();
+        });
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            if (isShow && map[pos.row][pos.col] === NONE) {
+                map[pos.row][pos.col] = pos.player;
+                if (check(pos.row, pos.col)) {
+                    alert(pos.player === BLACK ? '黑棋胜利！' : '白棋胜利！');
+                    return;
+                }
+                pos.player = pos.player === BLACK ? WHITE : BLACK;
+            }
+            drawBoard();
+        });
+
+        aiButton.addEventListener('click', () => {
+            console.log('AI提示');
+        });
+
+        init();
+    </script>
+</body>
+
+</html>
+    
