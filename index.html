@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飞机大战</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="gameCanvas" width="400" height="800"></canvas>
+    <audio id="bgMusic" src="IMG/背景音乐.wav" loop></audio>
+    <audio id="bulletSound" src="IMG/子弹.wav"></audio>
+    <script>
+        // 定义常量
+        const WIDTH = 400;
+        const HEIGHT = 800;
+        const SIZE = 50;
+        const ENEMY_NUM = 8;
+
+        // 定义结构体
+        class POS {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+            }
+        }
+
+        class ENEMY_PLANE {
+            constructor(planePos, type, speed) {
+                this.planePos = planePos;
+                this.type = type;
+                this.speed = speed;
+            }
+        }
+
+        class PLANE {
+            constructor(planePos, bulletPos, bulletCount, bulletspeed) {
+                this.planePos = planePos;
+                this.bulletPos = bulletPos;
+                this.bulletCount = bulletCount;
+                this.bulletspeed = bulletspeed;
+            }
+        }
+
+        class Key {
+            constructor(charKey, vkKey) {
+                this.charKey = charKey;
+                this.vkKey = vkKey;
+            }
+        }
+
+        // 全局变量
+        let myPlane;
+        let enemyPlane = [];
+        let itemPos;
+        let enemyNum, score;
+        let enemyTime, itemTime;
+        let itemActive, gameStarted, isPaused, isMusicPaused;
+        let images = [];
+        let keys = {};
+        let originalKeys = [
+            new Key('W', 38),
+            new Key('A', 37),
+            new Key('S', 40),
+            new Key('D', 39)
+        ];
+
+        // 初始化游戏
+        function initGame() {
+            score = 0;
+            myPlane = new PLANE(new POS(WIDTH / 2 - SIZE / 2, HEIGHT - SIZE), [], 0, 2); // 降低子弹速度
+            enemyNum = 0;
+            enemyTime = Date.now();
+            itemTime = Date.now();
+            itemActive = false;
+            gameStarted = false;
+            enemyPlane = [];
+            for (let i = 0; i < ENEMY_NUM; i++) {
+                enemyPlane.push(new ENEMY_PLANE(new POS(0, 0), 0, 1)); // 降低敌机速度
+            }
+            keys = {};
+            originalKeys.forEach(key => {
+                keys[key.charKey] = false;
+                keys[key.vkKey] = false;
+            });
+        }
+
+        // 碰撞检测
+        function checkCollision(p1, p2, r) {
+            return Math.abs(p1.x - p2.x) <= r && Math.abs(p1.y - p2.y) <= r;
+        }
+
+        // 道具生成
+        function spawnItem() {
+            if (!itemActive && Date.now() - itemTime >= 5000) {
+                itemPos = new POS(Math.floor(Math.random() * (WIDTH - SIZE)), Math.floor(Math.random() * (HEIGHT - SIZE)));
+                itemActive = true;
+                itemTime = Date.now();
+            }
+        }
+
+        // 道具效果：随机打乱按键
+        function itemEffect() {
+            const shuffledKeys = [...originalKeys];
+            for (let i = shuffledKeys.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledKeys[i], shuffledKeys[j]] = [shuffledKeys[j], shuffledKeys[i]];
+            }
+            shuffledKeys.forEach(key => {
+                keys[key.charKey] = false;
+                keys[key.vkKey] = false;
+            });
+        }
+
+        // 更新游戏
+        function updateGame() {
+            if (!isPaused) {
+                // 玩家移动控制
+                if (keys['W'] || keys[38]) myPlane.planePos.y -= 2; // 降低玩家飞机移动速度
+                if (keys['A'] || keys[37]) myPlane.planePos.x -= 2; // 降低玩家飞机移动速度
+                if (keys['S'] || keys[40]) myPlane.planePos.y += 2; // 降低玩家飞机移动速度
+                if (keys['D'] || keys[39]) myPlane.planePos.x += 2; // 降低玩家飞机移动速度
+
+                // 边界检查
+                myPlane.planePos.x = (myPlane.planePos.x + WIDTH) % WIDTH;
+                myPlane.planePos.y = Math.max(10, Math.min(HEIGHT - SIZE + 20, myPlane.planePos.y));
+
+                // 子弹发射
+                if (keys[32]) {
+                    myPlane.bulletPos.push(new POS(myPlane.planePos.x, myPlane.planePos.y));
+                    myPlane.bulletCount++;
+                    if (gameStarted) document.getElementById('bulletSound').play();
+                }
+
+                // 子弹移动
+                for (let i = 0; i < myPlane.bulletCount; i++) {
+                    myPlane.bulletPos[i].y -= myPlane.bulletspeed;
+                }
+
+                // 敌机生成和移动
+                if (Date.now() - enemyTime >= 1000 && enemyNum < ENEMY_NUM) {
+                    let type = Math.floor(Math.random() * 3);
+                    enemyPlane[enemyNum].planePos = new POS(Math.floor(Math.random() * (WIDTH - 2 * SIZE) + SIZE), -SIZE);
+                    enemyPlane[enemyNum].type = type;
+                    if (type === 0) enemyPlane[enemyNum].speed = 1; // 普通敌机速度
+                    else if (type === 1) enemyPlane[enemyNum].speed = 2; // 蜜蜂飞机速度
+                    else if (type === 2) enemyPlane[enemyNum].speed = 1; // 盾牌飞机速度
+                    enemyNum++;
+                    enemyTime = Date.now();
+                }
+
+                for (let i = 0; i < enemyNum; i++) {
+                    // 与玩家的距离
+                    let dx = myPlane.planePos.x - enemyPlane[i].planePos.x;
+                    let dy = myPlane.planePos.y - enemyPlane[i].planePos.y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+
+                    // 蜜蜂飞机行为
+                    if (enemyPlane[i].type === 1) {
+                        if (distance < 250) {
+                            enemyPlane[i].speed = 4; // 蜜蜂飞机近距离速度
+                            enemyPlane[i].planePos.x += dx > 0? 2 : -2;
+                        } else {
+                            enemyPlane[i].speed = 2; // 蜜蜂飞机远距离速度
+                        }
+                    }
+
+                    // 移动敌机
+                    enemyPlane[i].planePos.y += enemyPlane[i].speed;
+
+                    // 检查敌机是否飞出屏幕底部
+                    if (enemyPlane[i].planePos.y > HEIGHT) {
+                        enemyPlane[i] = enemyPlane[--enemyNum];
+                        continue;
+                    }
+
+                    // 道具生成和碰撞
+                    spawnItem();
+                    if (itemActive) {
+                        if (!checkCollision(myPlane.planePos, itemPos, SIZE)) {
+                            for (let j = 0; j < myPlane.bulletCount; j++) {
+                                if (checkCollision(myPlane.bulletPos[j], itemPos, SIZE / 2)) {
+                                    itemActive = false;
+                                    myPlane.bulletPos.splice(j, 1);
+                                    myPlane.bulletCount--;
+                                    break;
+                                }
+                            }
+                        } else {
+                            itemActive = false;
+                            itemEffect();
+                        }
+                    }
+
+                    // 玩家碰撞
+                    if (checkCollision(myPlane.planePos, enemyPlane[i].planePos, SIZE / 2)) {
+                        if (gameStarted) {
+                            if (confirm("游戏结束！重新开始？")) {
+                                initGame();
+                            } else {
+                                location.reload();
+                            }
+                            return;
+                        }
+                    }
+
+                    // 子弹碰撞
+                    let j = 0;
+                    for (; j < myPlane.bulletCount; j++) {
+                        if (checkCollision(myPlane.bulletPos[j], enemyPlane[i].planePos, SIZE / 2)) {
+                            myPlane.bulletPos.splice(j, 1);
+                            myPlane.bulletCount--;
+                            if (enemyPlane[i].type!== 2 && (enemyPlane[i].type!== 1 || distance >= 180)) {
+                                score += gameStarted * (itemActive? 4 : 1);
+                                enemyPlane[i] = enemyPlane[--enemyNum];
+                            }
+                            break;
+                        }
+                    }
+                    if (j >= myPlane.bulletCount) i++;
+                }
+
+                // 移除超出屏幕的子弹
+                for (let i = myPlane.bulletCount - 1; i >= 0; i--) {
+                    if (myPlane.bulletPos[i].y < 0) {
+                        myPlane.bulletPos.splice(i, 1);
+                        myPlane.bulletCount--;
+                    }
+                }
+            }
+        }
+
+        // 绘制游戏
+        function drawGame() {
+            let ctx = document.getElementById('gameCanvas').getContext('2d');
+            if (images[0].complete) {
+                ctx.drawImage(images[0], 0, 0, WIDTH, HEIGHT);
+            }
+
+            // 绘制玩家
+            if (images[2].complete) {
+                ctx.drawImage(images[2], myPlane.planePos.x - SIZE / 3, myPlane.planePos.y - SIZE / 3, SIZE, SIZE);
+            }
+
+            // 绘制敌机
+            for (let i = 0; i < enemyNum; i++) {
+                if (enemyPlane[i].type === 0 && images[1].complete) {
+                    ctx.drawImage(images[1], enemyPlane[i].planePos.x - SIZE / 3, enemyPlane[i].planePos.y - SIZE / 3, SIZE, SIZE);
+                } else if (enemyPlane[i].type === 1 && images[6].complete) {
+                    ctx.drawImage(images[6], enemyPlane[i].planePos.x - SIZE / 3, enemyPlane[i].planePos.y - SIZE / 3, SIZE, SIZE);
+                } else if (enemyPlane[i].type === 2 && images[4].complete) {
+                    ctx.drawImage(images[4], enemyPlane[i].planePos.x - SIZE / 3, enemyPlane[i].planePos.y - SIZE / 3, SIZE, SIZE);
+                }
+            }
+
+            // 绘制子弹
+            for (let i = 0; i < myPlane.bulletCount; i++) {
+                if (images[3].complete) {
+                    ctx.drawImage(images[3], myPlane.bulletPos[i].x - 5, myPlane.bulletPos[i].y - 5, 10, 10);
+                }
+            }
+
+            // 绘制道具
+            if (itemActive && images[5].complete) {
+                ctx.drawImage(images[5], itemPos.x, itemPos.y, SIZE, SIZE);
+            }
+
+            // 绘制分数
+            ctx.font = "35px Arial";
+            ctx.fillStyle = "red";
+            ctx.textAlign = "center";
+            ctx.fillText("分数: " + score, WIDTH / 2, SIZE);
+
+
+
+            if (!gameStarted) {
+                ctx.fillStyle = "blue";
+                ctx.font = "50px Arial";
+                ctx.fillText("开始游戏", WIDTH / 2, 250);
+                ctx.fillText("退出游戏", WIDTH / 2, 400);
+            }
+        }
+
+        // 检查按键是否按下
+        document.addEventListener('keydown', function (event) {
+            keys[event.key] = true;
+            keys[event.keyCode] = true;
+        });
+
+        document.addEventListener('keyup', function (event) {
+            keys[event.key] = false;
+            keys[event.keyCode] = false;
+        });
+
+        // 初始化IMG
+        function initResources() {
+            let imgNames = ["背景板", "敌机", "我方飞机", "子弹", "盾牌", "飞机道具", "蜜蜂飞机"];
+            let loadedImages = 0;
+            for (let i = 0; i < imgNames.length; i++) {
+                let img = new Image();
+                img.src = "IMG/" + imgNames[i] + ".png";
+                images.push(img);
+                img.onload = function () {
+                    loadedImages++;
+                    if (loadedImages === imgNames.length) {
+                        startGame();
+                    }
+                };
+                img.onerror = function () {
+                    console.error(`图片加载失败: ${img.src}`);
+                };
+            }
+        }
+
+        // 开始游戏
+        function startGame() {
+            initGame();
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Shift' &&!gameStarted) {
+                    gameStarted = true;
+                    document.getElementById('bgMusic').play();
+                }
+                if (event.key === 'Enter' &&!gameStarted) {
+                    location.reload();
+                }
+                if (event.key === 'P' || event.key === 'Escape' || event.key === 'M') {
+                    if (event.key === 'M') {
+                        isMusicPaused =!isMusicPaused;
+                    } else {
+                        isPaused =!isPaused;
+                    }
+                    let audio = document.getElementById('bgMusic');
+                    if (isPaused || isMusicPaused) {
+                        audio.pause();
+                    } else {
+                        audio.play();
+                    }
+                }
+            });
+            document.addEventListener('click', function (event) {
+                let rect = document.getElementById('gameCanvas').getBoundingClientRect();
+                let x = event.clientX - rect.left;
+                let y = event.clientY - rect.top;
+                // 增加 SIZE 距离到 y 坐标的判断范围
+                if (!gameStarted && y >= 250 - SIZE && y <= 250 + 50 - SIZE && x >= WIDTH / 2 - 100 && x <= WIDTH / 2 + 100) {
+                    gameStarted = true;
+                    document.getElementById('bgMusic').play();
+                }
+                if (!gameStarted && y >= 400 - SIZE && y <= 400 + 50 - SIZE && x >= WIDTH / 2 - 100 && x <= WIDTH / 2 + 100) {
+                    location.reload();
+                }
+            });
+            setInterval(() => {
+                spawnItem();
+                drawGame();
+                updateGame();
+            }, 7);
+        }
+
+        initResources();
+    </script>
+</body>
+
+</html>
