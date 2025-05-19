@@ -1,7 +1,7 @@
 const express = require('express');
+const WebSocket = require('ws');
 const app = express();
 const http = require('http').createServer(app);
-const WebSocket = require('ws');
 const PORT = process.env.PORT || 5000;
 
 // 创建WebSocket服务器
@@ -117,8 +117,13 @@ wss.on('connection', (ws) => {
   });
 });
 
-// 静态文件服务
-app.use(express.static('public'));
+// 配置静态文件服务 - 关键修改点
+app.use(express.static('.')); // 提供当前目录下的所有静态文件
+
+// 根路径处理
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/index.html'); // 确保index.html在正确的路径下
+});
 
 // 启动服务器
 http.listen(PORT, () => {
