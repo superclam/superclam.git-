@@ -7,19 +7,43 @@ const cors = require('cors');
 const port = process.env.PORT || 8080;
 const app = express();
 
-// 配置跨域：仅允许 GitHub Codespaces 公网域名访问
+// 配置跨域：允许 Codespaces 域名和本地开发环境
+const allowedOrigins = [];
+
+// 动态添加 Codespaces 域名
+if (process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN) {
+  const codespacesDomain = process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN;
+  allowedOrigins.push(`https://*.${codespacesDomain}`);
+}
+
+// 允许本地开发环境
+allowedOrigins.push('http://localhost:*');
+
+// 配置 CORS 中间件
 app.use(cors({
   origin: (origin, callback) => {
-    // 检查来源是否为 Codespaces 公网域名（以 .githubpreview.dev 结尾）
-    if (origin && origin.match(/\.githubpreview\.dev$/)) {
+    // 允许无来源的请求（如 Postman 或浏览器直接访问）
+    if (!origin) return callback(null, true);
+    
+    // 检查来源是否匹配允许的域名
+    const isAllowed = allowedOrigins.some(pattern => {
+      // 将通配符模式转换为正则表达式
+      const regex = new RegExp(`^${pattern.replace(/\*/g, '.*')}$`);
+      return regex.test(origin);
+    });
+    
+    if (isAllowed) {
+      console.log(`✅ 允许跨域请求: ${origin}`);
       callback(null, true);
     } else {
+      console.log(`❌ 拒绝跨域请求: ${origin}`);
       callback(new Error('跨域请求被拒绝'), false);
     }
   },
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type'],
-  credentials: true
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  exposedHeaders: ['X-Request-ID']
 }));
 
 // 托管 public 目录作为静态资源根目录
@@ -223,3 +247,11 @@ wss.on('connection', (ws) => {
 
 // 启动游戏循环（每秒更新 10 次）
 setInterval(updateGameState, 100);
+
+// 错误处理中间件
+app.use((err, req, res, next) => {
+  console.error('服务器错误:', err);
+  res.status(500).send('服务器内部错误');
+});
+
+console.log('✅ CORS 配置:', allowedOrigins);
