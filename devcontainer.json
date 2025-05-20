@@ -1,0 +1,22 @@
+{
+  "name": "Multiplayer Snake - Codespaces",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "ports": [
+    {
+      "port": 8080,
+      "public": true,
+      "label": "Game Server",
+      "onAutoForward": true
+    }
+  ],
+  "postCreateCommand": "npm install && node server.js",
+  "settings": {
+    "node.js.defaultVersion": "18.x",
+    "files.exclude": {
+      "**/.git": true,
+      "**/.devcontainer": false
+    }
+  }
+}
