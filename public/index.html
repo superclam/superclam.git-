@@ -1,15 +1,42 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
+
 <head>
     <meta charset="UTF-8">
     <title>远程联机贪吃蛇 - GitHub Codespaces</title>
     <style>
-        body { background: #1a1a1a; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; font-family: Arial, sans-serif; }
-        canvas { border: 4px solid #333; margin-top: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.3); }
-        #scoreboard { color: #fff; font-size: 1.2em; margin: 20px 0; text-align: center; }
-        #connection-status { color: #66ff66; position: absolute; top: 20px; right: 20px; }
+        body {
+            background: #1a1a1a;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        canvas {
+            border: 4px solid #333;
+            margin-top: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        #scoreboard {
+            color: #fff;
+            font-size: 1.2em;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        #connection-status {
+            color: #66ff66;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
     </style>
 </head>
+
 <body>
     <div id="connection-status">连接状态: 未连接</div>
     <h1 style="color: #fff;">远程联机贪吃蛇</h1>
@@ -27,10 +54,14 @@
         let gameData = { players: [], food: {}, score: {} };
 
         // 自动获取 Codespaces 公网地址（无需手动输入）
-        const wsUrl = `ws://${window.location.host}`; // 例如：ws://abc123-8080.githubpreview.dev
+        // 尝试先使用wss协议，若失败再尝试ws协议
+        const wssUrl = `wss://${window.location.host}`;
+        const wsUrl = `ws://${window.location.host}`;
+        let currentUrl = wssUrl;
 
         function connect() {
-            ws = new WebSocket(wsUrl);
+            console.log('开始尝试连接，当前连接地址:', currentUrl);
+            ws = new WebSocket(currentUrl);
 
             ws.onopen = () => {
                 connectionStatus.textContent = '连接状态: 已连接';
@@ -68,6 +99,14 @@
 
             ws.onerror = (error) => {
                 console.error('WebSocket 错误:', error);
+                // 如果是wss连接失败，尝试切换到ws连接
+                if (currentUrl === wssUrl) {
+                    console.log('wss连接失败，尝试切换到ws连接');
+                    currentUrl = wsUrl;
+                    connect();
+                } else {
+                    console.log('ws连接也失败，等待重试...');
+                }
             };
         }
 
@@ -76,7 +115,7 @@
             let html = '<strong>分数板:</strong><br>';
             for (const id in gameData.score) {
                 const isMe = id === playerId;
-                html += `${isMe ? '【我】' : '玩家' + id}: ${gameData.score[id]} 分<br>`;
+                html += `${isMe? '【我】' : '玩家' + id}: ${gameData.score[id]} 分<br>`;
             }
             scoreboard.innerHTML = html;
         }
@@ -86,10 +125,18 @@
             if (!playerId) return;
             let direction = null;
             switch (e.key.toLowerCase()) {
-                case 'arrowleft': direction = 'LEFT'; break;
-                case 'arrowup': direction = 'UP'; break;
-                case 'arrowright': direction = 'RIGHT'; break;
-                case 'arrowdown': direction = 'DOWN'; break;
+                case 'arrowleft':
+                    direction = 'LEFT';
+                    break;
+                case 'arrowup':
+                    direction = 'UP';
+                    break;
+                case 'arrowright':
+                    direction = 'RIGHT';
+                    break;
+                case 'arrowdown':
+                    direction = 'DOWN';
+                    break;
             }
             if (direction) {
                 ws.send(JSON.stringify({ type: 'changeDirection', direction }));
@@ -107,7 +154,7 @@
             // 绘制所有玩家的蛇
             gameData.players.forEach(player => {
                 const isMe = player.id === playerId;
-                const color = isMe ? '#4CAF50' : player.color;
+                const color = isMe? '#4CAF50' : player.color;
 
                 player.snake.forEach((segment, index) => {
                     ctx.fillStyle = color;
@@ -147,7 +194,13 @@
             }
         }
 
-        connect(); // 初始化连接
+        // 检测浏览器是否支持WebSocket
+        if (!('WebSocket' in window)) {
+            alert('你的浏览器不支持WebSocket，无法运行此游戏。请更换浏览器后重试。');
+        } else {
+            connect(); // 初始化连接
+        }
     </script>
 </body>
+
 </html>
