@@ -125,3 +125,11 @@ cd ScreenHelper
 ## 许可证
 
 本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+---
+
+## 🔄 构建状态
+
+如果您看到"No releases published"，请稍等几分钟让GitHub Actions完成自动构建，或者访问 [Actions页面](https://github.com/superclam/superclam.git-/actions) 查看构建进度。
+
+**最后更新：2024年6月19日**
