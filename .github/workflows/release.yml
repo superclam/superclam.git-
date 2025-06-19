@@ -1,0 +1,94 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.1)'
+        required: true
+        default: 'v1.0.1'
+
+jobs:
+  release:
+    runs-on: ubuntu-20.04
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+      with:
+        api-level: 32
+        build-tools: 32.0.0
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Build debug APK
+      run: ./gradlew assembleDebug --no-daemon
+
+    - name: Build release APK
+      run: ./gradlew assembleRelease --no-daemon
+
+    - name: Rename APK files
+      run: |
+        mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/ScreenHelper-debug.apk
+        mv app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/ScreenHelper-release.apk
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.event.inputs.version }}
+        name: ScreenHelper ${{ github.event.inputs.version }} - 截屏检测绕过助手
+        body: |
+          ## ScreenHelper - 截屏检测绕过助手
+
+          ### 🎯 功能特性
+          - ✅ 绕过应用截屏检测
+          - ✅ 虚拟环境模拟技术
+          - ✅ 增强截屏功能
+          - ✅ 分屏检测绕过
+          - ✅ 后台服务支持
+
+          ### 📱 支持的应用
+          - 学习通
+          - 其他具有截屏检测的应用
+
+          ### 🚀 使用说明
+          1. **下载安装**: 下载APK文件并安装到手机
+          2. **权限授予**: 启动应用后授予必要权限
+          3. **启用功能**: 打开"启用检测绕过"开关，点击"启动服务"
+          4. **正常使用**: 在目标应用中正常截屏，检测将被绕过
+
+          ### 📥 下载说明
+          - **ScreenHelper-debug.apk**: 包含调试信息，适合开发测试
+          - **ScreenHelper-release.apk**: 优化版本，推荐日常使用
+
+          ### ⚠️ 重要提醒
+          - 本应用仅供学习研究和技术交流使用
+          - 请勿用于违法违规用途
+          - 请遵守相关法律法规，合理使用本软件
+          - 不同设备和系统版本效果可能不同
+
+          ### 📞 技术支持
+          - **GitHub Issues**: [提交问题](https://github.com/superclam/superclam.git-/issues)
+          - **项目地址**: [GitHub仓库](https://github.com/superclam/superclam.git-)
+
+          ---
+          **构建时间**: ${{ github.event.head_commit.timestamp }}  
+          **版本**: ${{ github.event.inputs.version }}  
+          **开发者**: superclam
+        files: |
+          app/build/outputs/apk/debug/ScreenHelper-debug.apk
+          app/build/outputs/apk/release/ScreenHelper-release.apk
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

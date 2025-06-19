@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
     - name: Checkout code
@@ -23,71 +23,29 @@ jobs:
 
     - name: Setup Android SDK
       uses: android-actions/setup-android@v2
-
-    - name: Cache Gradle packages
-      uses: actions/cache@v3
       with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
+        api-level: 32
+        build-tools: 32.0.0
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    - name: Clean project
-      run: ./gradlew clean
-
     - name: Build debug APK
-      run: ./gradlew assembleDebug --stacktrace
+      run: ./gradlew assembleDebug --no-daemon --stacktrace
 
     - name: Build release APK
-      run: ./gradlew assembleRelease --stacktrace
+      run: ./gradlew assembleRelease --no-daemon --stacktrace
 
     - name: Upload debug APK
       uses: actions/upload-artifact@v3
+      if: success()
       with:
-        name: app-debug
+        name: ScreenHelper-debug
         path: app/build/outputs/apk/debug/app-debug.apk
 
     - name: Upload release APK
       uses: actions/upload-artifact@v3
+      if: success()
       with:
-        name: app-release
+        name: ScreenHelper-release
         path: app/build/outputs/apk/release/app-release-unsigned.apk
-
-    - name: Create Release
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: v1.0.${{ github.run_number }}
-        name: ScreenHelper v1.0.${{ github.run_number }}
-        body: |
-          ## ScreenHelper - 截屏检测绕过助手
-
-          ### 功能特性
-          - 绕过应用截屏检测
-          - 虚拟环境模拟
-          - 增强截屏功能
-          - 分屏检测绕过
-
-          ### 使用说明
-          1. 下载并安装APK文件
-          2. 授予必要权限
-          3. 启用检测绕过模式
-          4. 启动截屏服务
-          5. 在目标应用中正常使用
-
-          ### 注意事项
-          - 仅供学习研究使用
-          - 请遵守相关法律法规
-          - 不同设备效果可能不同
-        files: |
-          app/build/outputs/apk/debug/app-debug.apk
-          app/build/outputs/apk/release/app-release-unsigned.apk
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
