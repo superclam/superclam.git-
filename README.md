@@ -1,5 +1,16 @@
 # ScreenHelper - 截屏检测绕过助手
 
+[![Build Status](https://github.com/superclam/ScreenHelper/actions/workflows/build.yml/badge.svg)](https://github.com/superclam/ScreenHelper/actions)
+[![Release](https://img.shields.io/github/v/release/superclam/ScreenHelper)](https://github.com/superclam/ScreenHelper/releases)
+[![License](https://img.shields.io/github/license/superclam/ScreenHelper)](LICENSE)
+[![Downloads](https://img.shields.io/github/downloads/superclam/ScreenHelper/total)](https://github.com/superclam/ScreenHelper/releases)
+
+## 📱 快速下载
+
+**[📥 点击下载最新版APK](https://github.com/superclam/ScreenHelper/releases/latest)**
+
+或访问下载页面：**https://superclam.github.io/ScreenHelper/**
+
 ## 项目简介
 
 ScreenHelper 是一个Android应用，专门用于绕过某些应用（如学习通）的截屏和分屏检测机制。通过虚拟环境模拟技术，让检测机制认为截屏操作发生在被监控环境之外。
@@ -33,13 +44,24 @@ ScreenHelper 是一个Android应用，专门用于绕过某些应用（如学习
 - `VirtualDisplayHelper` - 虚拟显示辅助类
 - `ScreenshotService` - 截屏服务
 
-## 使用方法
+## 🚀 快速开始
 
-1. **安装应用** - 下载并安装APK文件
-2. **授予权限** - 首次启动时授予必要权限
-3. **启用绕过模式** - 打开检测绕过开关
-4. **启动服务** - 启动截屏服务
-5. **使用功能** - 在目标应用中正常截屏
+### 1. 下载安装
+- 从 [Releases页面](https://github.com/superclam/ScreenHelper/releases) 下载最新APK
+- 或访问 [下载页面](https://superclam.github.io/ScreenHelper/) 直接下载
+- 允许未知来源安装并安装APK
+
+### 2. 权限设置
+首次启动需要授予以下权限：
+- 📁 存储权限（保存截图）
+- 🔲 悬浮窗权限（创建覆盖层）
+- 📹 屏幕录制权限（截屏功能）
+
+### 3. 使用步骤
+1. **启用绕过模式** - 打开"启用检测绕过"开关
+2. **启动服务** - 点击"启动服务"并授予权限
+3. **打开目标应用** - 如学习通等
+4. **正常截屏** - 检测将被自动绕过
 
 ## 权限说明
 
