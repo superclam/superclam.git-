@@ -5,12 +5,12 @@
 项目已配置GitHub Actions自动构建，每次推送代码到main分支都会自动构建APK并创建Release。
 
 ### 查看构建状态
-1. 访问 [GitHub Actions](https://github.com/superclam/ScreenHelper/actions)
+1. 访问 [GitHub Actions](https://github.com/superclam/superclam.git-/actions)
 2. 查看最新的构建状态
 3. 构建完成后会自动创建Release并上传APK文件
 
 ### 下载APK
-- 访问 [Releases页面](https://github.com/superclam/ScreenHelper/releases)
+- 访问 [Releases页面](https://github.com/superclam/superclam.git-/releases)
 - 下载最新版本的APK文件
 
 ## 手动构建
@@ -109,5 +109,5 @@ sign_apk.bat
 ## 技术支持
 
 如有问题，请通过以下方式联系：
-- GitHub Issues: https://github.com/superclam/ScreenHelper/issues
-- 项目地址: https://github.com/superclam/ScreenHelper
+- GitHub Issues: https://github.com/superclam/superclam.git-/issues
+- 项目地址: https://github.com/superclam/superclam.git-

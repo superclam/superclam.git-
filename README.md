@@ -1,15 +1,15 @@
 # ScreenHelper - 截屏检测绕过助手
 
-[![Build Status](https://github.com/superclam/ScreenHelper/actions/workflows/build.yml/badge.svg)](https://github.com/superclam/ScreenHelper/actions)
-[![Release](https://img.shields.io/github/v/release/superclam/ScreenHelper)](https://github.com/superclam/ScreenHelper/releases)
-[![License](https://img.shields.io/github/license/superclam/ScreenHelper)](LICENSE)
-[![Downloads](https://img.shields.io/github/downloads/superclam/ScreenHelper/total)](https://github.com/superclam/ScreenHelper/releases)
+[![Build Status](https://github.com/superclam/superclam.git-/actions/workflows/build.yml/badge.svg)](https://github.com/superclam/superclam.git-/actions)
+[![Release](https://img.shields.io/github/v/release/superclam/superclam.git-)](https://github.com/superclam/superclam.git-/releases)
+[![License](https://img.shields.io/github/license/superclam/superclam.git-)](LICENSE)
+[![Downloads](https://img.shields.io/github/downloads/superclam/superclam.git-/total)](https://github.com/superclam/superclam.git-/releases)
 
 ## 📱 快速下载
 
-**[📥 点击下载最新版APK](https://github.com/superclam/ScreenHelper/releases/latest)**
+**[📥 点击下载最新版APK](https://github.com/superclam/superclam.git-/releases/latest)**
 
-或访问下载页面：**https://superclam.github.io/ScreenHelper/**
+或访问下载页面：**https://superclam.github.io/superclam.git-/**
 
 ## 项目简介
 
@@ -47,8 +47,8 @@ ScreenHelper 是一个Android应用，专门用于绕过某些应用（如学习
 ## 🚀 快速开始
 
 ### 1. 下载安装
-- 从 [Releases页面](https://github.com/superclam/ScreenHelper/releases) 下载最新APK
-- 或访问 [下载页面](https://superclam.github.io/ScreenHelper/) 直接下载
+- 从 [Releases页面](https://github.com/superclam/superclam.git-/releases) 下载最新APK
+- 或访问 [下载页面](https://superclam.github.io/superclam.git-/) 直接下载
 - 允许未知来源安装并安装APK
 
 ### 2. 权限设置

@@ -3,17 +3,17 @@
 ## 📱 APK下载方式
 
 ### 方式1：GitHub Releases（推荐）
-1. 访问 [GitHub Releases页面](https://github.com/superclam/ScreenHelper/releases)
+1. 访问 [GitHub Releases页面](https://github.com/superclam/superclam.git-/releases)
 2. 下载最新版本的APK文件
 3. 直接安装到手机
 
 ### 方式2：GitHub Actions构建
-1. 访问 [GitHub Actions页面](https://github.com/superclam/ScreenHelper/actions)
+1. 访问 [GitHub Actions页面](https://github.com/superclam/superclam.git-/actions)
 2. 点击最新的成功构建
 3. 在Artifacts部分下载APK文件
 
 ### 方式3：在线下载页面
-访问：https://superclam.github.io/ScreenHelper/
+访问：https://superclam.github.io/superclam.git-/
 
 ## 📥 APK文件说明
 
@@ -85,13 +85,13 @@ A: 检查是否允许未知来源安装，或尝试重新下载APK
 A: 在系统设置中手动授予相关权限
 
 ### Q: 绕过功能无效
-A: 
+A:
 - 确保已启用绕过模式
 - 重启目标应用
 - 检查权限是否完整
 
 ### Q: 应用闪退
-A: 
+A:
 - 检查Android版本兼容性
 - 清除应用数据重试
 - 查看系统日志定位问题
@@ -99,8 +99,8 @@ A:
 ## 📞 技术支持
 
 ### 问题反馈
-- GitHub Issues: https://github.com/superclam/ScreenHelper/issues
-- 项目地址: https://github.com/superclam/ScreenHelper
+- GitHub Issues: https://github.com/superclam/superclam.git-/issues
+- 项目地址: https://github.com/superclam/superclam.git-
 
 ### 更新通知
 - 关注GitHub仓库获取最新版本
