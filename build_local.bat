@@ -4,10 +4,15 @@ echo ScreenHelper 本地构建脚本
 echo ========================================
 echo.
 
+echo 设置Java环境...
+set JAVA_HOME=D:\Github\Java
+set PATH=%JAVA_HOME%\bin;%PATH%
+
 echo 检查Java环境...
-java -version
+"%JAVA_HOME%\bin\java" -version
 if %errorlevel% neq 0 (
-    echo 错误: 未找到Java环境，请确保已安装Java 8或更高版本
+    echo 错误: Java环境设置失败
+    echo 请确保Java已正确安装在 D:\Github\Java
     pause
     exit /b 1
 )
